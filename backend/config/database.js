@@ -2,11 +2,11 @@ require("dotenv").config();
 const { Sequelize } = require("sequelize");
 
 const sequelize = new Sequelize(
-  process.env.DB_NAME,
-  process.env.DB_USERNAME,
-  process.env.DB_PASSWORD,
+  "flixflix_dev",
+  "5vcnj4tvgn8xordktp9k",
+  "pscale_pw_XCVlqTDwL2a80OZwMT95Y5syIG5lmya6t0oOgM00tKI",
   {
-    host: process.env.DB_HOST,
+    host: "aws.connect.psdb.cloud",
     dialect: "mysql",
     dialectOptions: {
       ssl: {
