@@ -3,10 +3,10 @@ const fs = require("fs");
 
 module.exports = {
   development: {
-    username: "5vcnj4tvgn8xordktp9k",
-    password: "pscale_pw_XCVlqTDwL2a80OZwMT95Y5syIG5lmya6t0oOgM00tKI",
-    database: "flixflix_dev",
-    host: "aws.connect.psdb.cloud",
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    host: process.env.DB_HOST,
     dialect: "mysql",
     dialectOptions: {
       ssl: {
@@ -16,20 +16,20 @@ module.exports = {
     },
   },
   test: {
-    username: "5vcnj4tvgn8xordktp9k",
-    password: "pscale_pw_XCVlqTDwL2a80OZwMT95Y5syIG5lmya6t0oOgM00tKI",
-    database: "flixflix_dev",
-    host: "aws.connect.psdb.cloud",
+    username: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: "flixflix_test",
+    host: process.env.DB_HOST,
     dialect: "mysql",
     dialectOptions: {
       bigNumberStrings: true,
     },
   },
   production: {
-    username: "5vcnj4tvgn8xordktp9k",
-    password: "pscale_pw_XCVlqTDwL2a80OZwMT95Y5syIG5lmya6t0oOgM00tKI",
-    database: "flixflix_dev",
-    host: "aws.connect.psdb.cloud",
+    username: "root",
+    password: null,
+    database: "flixflix_production",
+    host: "127.0.0.1",
     dialect: "mysql",
     dialectOptions: {
       bigNumberStrings: true,
