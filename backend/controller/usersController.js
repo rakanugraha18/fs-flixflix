@@ -1,150 +1,130 @@
 const db = require("../models");
-const User = db.userModel;
+const Users = db.UserModel;
+const bcrypt = require("bcryptjs");
 
-//Menampilkan semua user
-const findAllUsers = async (req, res) => {
+const { sign } = require("jsonwebtoken");
+
+// CREATE USERS
+const createUsers = async (req, res, next) => {
+  const { username, email, password, fullname } = req.body;
+
   try {
-    const dataUsers = await User.findAll();
-
-    const result = {
-      status: "ok",
-      data: dataUsers,
-    };
-    res.json(result);
+    const passwordHash = await bcrypt.hash(password, 10);
+    const userData = await Users.create({
+      username: username,
+      email: email,
+      password: passwordHash,
+      fullname: fullname,
+    });
+    res.status(201).send(userData);
   } catch (error) {
-    console.log(error, "<<<-- Error find all users");
+    console.error("Error while creating user:", error);
+    return next(error);
   }
 };
 
-//Menampilkan user berdasarkan ID
-const getUserById = async (req, res) => {
-  try {
-    //mendapatkan req params
-    const { id } = req.params;
+//LOGIN USER
+const login = async (req, res, next) => {
+  const { username, password } = req.body;
 
-    const dataUser = await User.findByPk(id);
-    if (dataUser === null) {
-      return res.status(404).json({
-        status: "failed",
-        message: `data User with id ${id} is not found`,
-      });
+  try {
+    const findUser = await Users.findOne({ where: { username: username } });
+
+    if (!findUser) {
+      throw new Error("Database error: User not found");
+    } else {
+      const checkPassword = await bcrypt.compare(password, findUser.password);
+      if (checkPassword) {
+        const accessToken = sign(
+          { username: findUser.username, user_id: findUser.user_id },
+          "importantsecrete",
+          { expiresIn: "30d" }
+        );
+        return res.json({
+          token: accessToken,
+          username: findUser.username,
+          user_id: findUser.user_id,
+        });
+      } else {
+        throw new Error("Incorrect password");
+      }
     }
-    res.json({
-      status: "ok",
-      data: dataUser,
-    });
   } catch (error) {
-    console.log(error, "<<<- error get User by id");
+    console.error("Error during login:", error);
+    return next(error);
   }
 };
 
-//Menambahkan User Baru
-const createNewUser = async (req, res) => {
-  try {
-    const { username, email, password, fullname } = req.body;
-
-    const newUser = await User.create({
-      username,
-      email,
-      password,
-      fullname,
-    });
-
-    res.status(201).json({
-      status: "ok",
-      data: newUser,
-    });
-  } catch (error) {
-    console.log(error, "<<<- Error create new User");
-    res.status(500).json({
-      status: "failed",
-      message: "Internal Server Error",
-    });
-  }
-};
-
-// Update User
+// UPDATE USER
 const updateUser = async (req, res, next) => {
+  const { username, email, newPassword, oldPassword } = req.body;
+
   try {
-    const userId = req.params.id;
-
-    // Check if userId is valid
-    if (!userId) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Invalid user ID",
-      });
-    }
-
-    // Retrieve the existing user data
-    const existingUser = await User.findByPk(userId);
-
-    // Check if the user exists
-    if (!existingUser) {
-      return res.status(404).json({
-        status: "failed",
-        message: `User with ID ${userId} not found`,
-      });
-    }
-
-    // Update the user with the new data from the request body
-    const updatedUser = await existingUser.update(req.body);
-
-    res.json({
-      status: "success",
-      message: "User updated successfully",
-      userBeforeUpdate: existingUser,
-      userUpdated: updatedUser,
+    const user = await Users.findOne({
+      where: { username: req.params.username },
     });
+
+    if (!user) {
+      throw new Error("Database error: User not found");
+    }
+
+    const checkPassword = await bcrypt.compare(oldPassword, user.password);
+
+    if (!checkPassword) {
+      throw new Error("Database error: Incorrect old password");
+    }
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    const updatedUser = await Users.update(
+      {
+        username: username,
+        email: email,
+        password: passwordHash,
+      },
+      { where: { username: req.params.username } }
+    );
+
+    res
+      .status(200)
+      .json({ message: "User updated successfully", data: updatedUser });
   } catch (error) {
-    console.error(error, "<< Error updating User");
-    next(error); // Pass the error to the next middleware (error handler)
+    console.error("Error while updating user:", error);
+    return next(error);
   }
 };
 
-// Menghapus user berdasarkan ID
-const deleteUser = async (req, res, next) => {
+// VIEW INDIVIDUAL PROFILE
+const viewIndividualProfile = async (req, res, next) => {
   try {
-    const userId = req.params.id;
-
-    // Check if userId is valid
-    if (!userId) {
-      return res.status(400).json({
-        status: "failed",
-        message: "Invalid user ID",
-      });
-    }
-
-    const userDataDeleted = await User.findByPk(userId);
-
-    // Use UserModel.destroy with a where clause to delete the User
-    const userDeleted = await User.destroy({
-      where: { id_user: userId },
+    const user = await Users.findOne({
+      where: { user_id: req.params.user_id },
     });
 
-    // Check if any rows were affected (user deleted)
-    if (userDeleted === 0) {
-      return res.status(404).json({
-        status: "failed",
-        message: `user with ID ${userId} not found`,
-      });
+    if (!user) {
+      throw new Error("Database error: User not found");
     }
 
     res.json({
       status: "success",
-      message: "user deleted successfully",
-      userDeleted: userDataDeleted,
+      data: user,
     });
   } catch (error) {
-    console.error(error, "<< Error deleting user");
-    next(error); // Pass the error to the next middleware (error handler)
+    console.error("Error while fetching individual profile:", error);
+    return next(error);
   }
+};
+
+// CONFRIM TOKEN TO BE CORRECT AND FETCH IT'S ENCRYPTED PARAMETERS
+const actualToken = (req, res) => {
+  // this is the only guy that an throw the req.user from the authMiddleware
+  res.json(req.user);
 };
 
 module.exports = {
-  findAllUsers,
-  getUserById,
-  createNewUser,
-  deleteUser,
+  createUsers,
+  login,
   updateUser,
+  viewIndividualProfile,
+  actualToken,
 };

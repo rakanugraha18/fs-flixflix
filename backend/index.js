@@ -2,9 +2,11 @@ const express = require("express");
 require("dotenv").config();
 const app = express();
 const port = process.env.APP_PORT || 5001;
-const router = require("./routes");
 app.use(express.urlencoded({ extended: false }));
 const cors = require("cors");
+const userRoutes = require("./routes/userRoutes");
+const productRoutes = require("./routes/productRouter");
+const errorMiddleware = require("./middleware/errorMiddleware");
 
 const bodyParser = require("body-parser"); // atau const express = require("express"); jika versi Express 4.16+
 
@@ -19,7 +21,12 @@ app.get("/api", (req, res) => {
   res.send("Hi there");
 });
 
-app.use("/api/v1", router);
+// Use the user routes
+app.use("/api/v1/user", userRoutes);
+app.use("/api/v1/product", productRoutes);
+
+// Use the error handling middleware
+app.use(errorMiddleware.errorHandler);
 
 app.listen(port, () => {
   console.log(`App listening on port ${port}`);
