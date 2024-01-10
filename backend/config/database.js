@@ -8,7 +8,11 @@ const sequelize = new Sequelize(
   {
     host: process.env.DB_HOST,
     dialect: "mysql",
-    dialectOptions: {},
+    dialectOptions: {
+      ssl: {
+        require: true,
+      },
+    },
     logging: false, // Nonaktifkan logging query SQL
   }
 );
