@@ -1,20 +1,47 @@
 const db = require("../models");
 const Users = db.UserModel;
 const bcrypt = require("bcryptjs");
-
+const { Op } = require("sequelize");
+const validator = require("validator");
 const { sign } = require("jsonwebtoken");
 
 // CREATE USERS
+
+const isStrongPasswordCustom = (password) => {
+  return password.length >= 6;
+};
 const createUsers = async (req, res, next) => {
   const { username, email, password, fullname } = req.body;
 
   try {
+    // Check emptiness of the incoming data
+    if (!username || !email || !password || !fullname) {
+      return res.json({ message: "Please enter all the details" });
+    }
+    // Check if the email is valid
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ message: "Email is not valid" });
+    }
+    if (!isStrongPasswordCustom(password)) {
+      return res.status(400).json({
+        message: "Password is not strong enough.",
+      });
+    }
+    // Check if the user already exists
+    const userExists = await Users.findOne({ where: { email } });
+    if (userExists) {
+      return res.status(400).json({
+        message: "This email is already in use. Use a different one.",
+      });
+    }
+    // Hash the password
     const passwordHash = await bcrypt.hash(password, 10);
+
     const userData = await Users.create({
-      username: username,
-      email: email,
+      username,
+      email,
       password: passwordHash,
-      fullname: fullname,
+      fullname,
     });
     res.status(201).send(userData);
   } catch (error) {
@@ -24,14 +51,25 @@ const createUsers = async (req, res, next) => {
 };
 
 //LOGIN USER
+//LOGIN USER
 const login = async (req, res, next) => {
-  const { username, password } = req.body;
-
   try {
-    const findUser = await Users.findOne({ where: { username: username } });
+    const { identifier, password } = req.body;
+
+    // Validation
+    if (!identifier || !password) {
+      return res.status(400).json({ message: "Please enter all the details" });
+    }
+
+    // Check if the identifier is an email or a username
+    const findUser = await Users.findOne({
+      where: {
+        [Op.or]: [{ username: identifier }, { email: identifier }],
+      },
+    });
 
     if (!findUser) {
-      throw new Error("Database error: User not found");
+      throw new Error("User not found please check email or username");
     } else {
       const checkPassword = await bcrypt.compare(password, findUser.password);
       if (checkPassword) {
