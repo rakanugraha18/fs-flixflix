@@ -14,6 +14,13 @@ const createUsers = async (req, res, next) => {
   const { username, email, password, fullname } = req.body;
 
   try {
+    // Check if the username contains spaces
+    if (/\s/.test(username)) {
+      return res
+        .status(400)
+        .json({ message: "Username cannot contain spaces" });
+    }
+
     // Check emptiness of the incoming data
     if (!username || !email || !password || !fullname) {
       return res.json({ message: "Please enter all the details" });
@@ -28,12 +35,21 @@ const createUsers = async (req, res, next) => {
       });
     }
     // Check if the user already exists
-    const userExists = await Users.findOne({ where: { email } });
-    if (userExists) {
+
+    const usernameExists = await Users.findOne({ where: { username } });
+    if (usernameExists) {
+      return res.status(400).json({
+        message: "This username is already in use. Use a different one.",
+      });
+    }
+
+    const emailExists = await Users.findOne({ where: { email } });
+    if (emailExists) {
       return res.status(400).json({
         message: "This email is already in use. Use a different one.",
       });
     }
+
     // Hash the password
     const passwordHash = await bcrypt.hash(password, 10);
 
