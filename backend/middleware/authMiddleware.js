@@ -1,29 +1,19 @@
 const { verify } = require("jsonwebtoken");
-//Middleware function to validate a token from the request header
+
 const validateToken = (req, res, next) => {
-  // Extract the 'authorization' header from the request
   const authorization = req.get("authorization");
 
-  // Initialize the token variable
-  let token = "";
-
-  // Check if 'authorization' header is missing
-  if (!authorization) {
+  if (!authorization || !authorization.toLowerCase().startsWith("bearer ")) {
     return res.status(401).json({ error: "User not logged in" });
   }
 
-  // Check if 'authorization' header starts with 'Bearer'
-  if (authorization && authorization.toLowerCase().startsWith("bearer")) {
-    // Extract the token after Bearer
-    token = authorization.substring(7);
-  }
+  const token = authorization.split(" ")[1];
 
-  // Verify the token using the secret key
   try {
     const validToken = verify(token, process.env.SECRET_KEY);
 
-    // Check if the token is missing or invalid
-    if (!token || !validToken.id) {
+    // Check if the decoding was successful
+    if (!validToken) {
       return res.status(401).json({ error: "Token is missing or invalid" });
     }
 

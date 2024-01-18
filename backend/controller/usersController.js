@@ -51,8 +51,8 @@ const createUsers = async (req, res, next) => {
 };
 
 //LOGIN USER
-//LOGIN USER
-const login = async (req, res, next) => {
+
+const login = async (req, res) => {
   try {
     const { identifier, password } = req.body;
 
@@ -62,34 +62,44 @@ const login = async (req, res, next) => {
     }
 
     // Check if the identifier is an email or a username
-    const findUser = await Users.findOne({
+    const user = await Users.findOne({
       where: {
         [Op.or]: [{ username: identifier }, { email: identifier }],
       },
     });
 
-    if (!findUser) {
-      throw new Error("User not found please check email or username");
-    } else {
-      const checkPassword = await bcrypt.compare(password, findUser.password);
-      if (checkPassword) {
-        const accessToken = sign(
-          { username: findUser.username, user_id: findUser.user_id },
-          "importantsecrete",
-          { expiresIn: "30d" }
-        );
-        return res.json({
-          token: accessToken,
-          username: findUser.username,
-          user_id: findUser.user_id,
-        });
-      } else {
-        throw new Error("Incorrect password");
-      }
+    const passwordMatched =
+      user === null
+        ? false
+        : // COMPARE USER PASSWORD WITH USER HASPASSWORD IN DB
+          await bcrypt.compare(password, user.password);
+    if (!(user && passwordMatched)) {
+      res.status(401).json({
+        error: "User or password is invalid",
+      });
     }
+    const userForToken = {
+      username: user.username,
+      email: user.email,
+      user_id: user.user_id,
+    };
+    // Generate a JWT token for the authenticated User
+    const token = sign(userForToken, process.env.SECRET_KEY, {
+      expiresIn: process.env.JWT_EXPIRE,
+    });
+
+    res.send({
+      username: user.username,
+      email: user.email,
+      user_id: user.user_id,
+      token,
+    });
   } catch (error) {
     console.error("Error during login:", error);
-    return next(error);
+    res.status(500).json({
+      status: "failed",
+      message: "Internal Server Error",
+    });
   }
 };
 
@@ -132,27 +142,6 @@ const updateUser = async (req, res, next) => {
   }
 };
 
-// VIEW INDIVIDUAL PROFILE
-const viewIndividualProfile = async (req, res, next) => {
-  try {
-    const user = await Users.findOne({
-      where: { user_id: req.params.user_id },
-    });
-
-    if (!user) {
-      throw new Error("Database error: User not found");
-    }
-
-    res.json({
-      status: "success",
-      data: user,
-    });
-  } catch (error) {
-    console.error("Error while fetching individual profile:", error);
-    return next(error);
-  }
-};
-
 // CONFRIM TOKEN TO BE CORRECT AND FETCH IT'S ENCRYPTED PARAMETERS
 const actualToken = (req, res) => {
   // this is the only guy that an throw the req.user from the authMiddleware
@@ -163,6 +152,5 @@ module.exports = {
   createUsers,
   login,
   updateUser,
-  viewIndividualProfile,
   actualToken,
 };

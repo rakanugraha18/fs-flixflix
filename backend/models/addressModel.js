@@ -1,49 +1,47 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/database");
-const { Op } = require("sequelize");
 
-const ProductModel = sequelize.define(
-  "ProductModel",
+const AddressModel = sequelize.define(
+  "AddressModel",
   {
-    product_id: {
+    address_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
     },
-    name_product: {
-      type: DataTypes.STRING(255),
-      unique: true,
-      allowNull: false,
-    },
-    category_product: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    image: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    specification: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    price: {
+    user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
-    stock: {
+    address_name: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    address_line1: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    address_line2: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    city: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    region: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    postal_code: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      defaultValue: 0,
-    },
-    discount: {
-      type: DataTypes.INTEGER,
     },
   },
   {
     sequelize,
-    modelName: "ProductModel",
-    tableName: "products",
+    modelName: "AddressModel",
+    tableName: "address",
     timestamps: false,
   }
 );
@@ -52,7 +50,7 @@ const ProductModel = sequelize.define(
 async function createTableIfNotExists() {
   try {
     // Sinkronkan model dengan database
-    await ProductModel.sync({ force: false });
+    await AddressModel.sync({ force: false });
 
     console.log("Table created successfully");
   } catch (err) {
@@ -61,5 +59,4 @@ async function createTableIfNotExists() {
 }
 
 createTableIfNotExists();
-
-module.exports = ProductModel;
+module.exports = AddressModel;
