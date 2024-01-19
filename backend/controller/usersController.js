@@ -59,7 +59,7 @@ const createUsers = async (req, res, next) => {
       password: passwordHash,
       fullname,
     });
-    res.status(201).send(userData);
+    return res.status(201).send(userData);
   } catch (error) {
     console.error("Error while creating user:", error);
     return next(error);
@@ -90,7 +90,7 @@ const login = async (req, res) => {
         : // COMPARE USER PASSWORD WITH USER HASPASSWORD IN DB
           await bcrypt.compare(password, user.password);
     if (!(user && passwordMatched)) {
-      res.status(401).json({
+      return res.status(401).json({
         error: "User or password is invalid",
       });
     }
@@ -104,7 +104,7 @@ const login = async (req, res) => {
       expiresIn: process.env.JWT_EXPIRE,
     });
 
-    res.send({
+    return res.send({
       username: user.username,
       email: user.email,
       user_id: user.user_id,
@@ -112,7 +112,7 @@ const login = async (req, res) => {
     });
   } catch (error) {
     console.error("Error during login:", error);
-    res.status(500).json({
+    return res.status(500).json({
       status: "failed",
       message: "Internal Server Error",
     });
@@ -161,7 +161,7 @@ const updateUser = async (req, res, next) => {
 // CONFRIM TOKEN TO BE CORRECT AND FETCH IT'S ENCRYPTED PARAMETERS
 const actualToken = (req, res) => {
   // this is the only guy that an throw the req.user from the authMiddleware
-  res.json(req.user);
+  return res.json(req.user);
 };
 
 module.exports = {

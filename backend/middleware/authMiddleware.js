@@ -17,8 +17,8 @@ const validateToken = (req, res, next) => {
       return res.status(401).json({ error: "Token is missing or invalid" });
     }
 
-    // Attach the customer ID from the token to the request object
-    req.id_customer = validToken.id;
+    // Attach the user ID from the token to the request object
+    req.user_id = validToken.user_id; // Use the correct propert
 
     // Call the next middleware or route handler in the chain
     next();

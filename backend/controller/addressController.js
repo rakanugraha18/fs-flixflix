@@ -12,10 +12,20 @@ const createNewAddress = async (req, res) => {
       city,
       region,
       postal_code,
-      user_id,
     } = req.body;
 
-    details = {
+    // Ambil ID pengguna dari token
+    const user_id = req.user_id;
+
+    // Pastikan ID pengguna ada
+    if (!user_id) {
+      return res.status(401).json({
+        status: "failed",
+        message: "User ID not found in the token",
+      });
+    }
+
+    const details = {
       user_id,
       address_name,
       address_line1,
@@ -25,9 +35,7 @@ const createNewAddress = async (req, res) => {
       postal_code,
     };
 
-    const newAddress = await Address.create(details, {
-      where: { user_id: user_id },
-    });
+    const newAddress = await Address.create(details);
 
     res.status(201).json({
       status: "ok",
