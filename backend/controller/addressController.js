@@ -165,10 +165,41 @@ const getAddressById = async (req, res) => {
   }
 };
 
+const checkAddress = async (req, res) => {
+  try {
+    const user_id = req.user_id;
+
+    // Pastikan ID pengguna ada
+    if (!user_id) {
+      return res.status(401).json({
+        status: "failed",
+        message: "User ID not found in the token",
+      });
+    }
+
+    // Mencari alamat berdasarkan ID pengguna
+    const userAddresses = await Address.findAll({
+      where: { user_id },
+    });
+
+    res.json({
+      status: "ok",
+      data: userAddresses,
+    });
+  } catch (error) {
+    console.error(error, "<< Error getting addresses by user");
+    res.status(500).json({
+      status: "failed",
+      message: "Internal Server Error",
+    });
+  }
+};
+
 module.exports = {
   createNewAddress,
   updateAddress,
   deleteAddress,
   findAllAddresss,
   getAddressById,
+  checkAddress,
 };

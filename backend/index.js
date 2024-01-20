@@ -7,6 +7,7 @@ const cors = require("cors");
 const userRoutes = require("./routes/userRoutes");
 const productRoutes = require("./routes/productRouter");
 const addressRouter = require("./routes/addressRouter");
+const rajaOngkirRouter = require("./routes/rajaOngkirRouter");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
 const bodyParser = require("body-parser"); // atau const express = require("express"); jika versi Express 4.16+
@@ -26,6 +27,7 @@ app.get("/api", (req, res) => {
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/product", productRoutes);
 app.use("/api/v1/address", addressRouter);
+app.use("/api/v1/rajaongkir", rajaOngkirRouter);
 
 // Use the error handling middleware
 app.use(errorMiddleware.errorHandler);
