@@ -7,11 +7,13 @@ const createNewAddress = async (req, res) => {
   try {
     const {
       address_name,
-      address_line1,
-      address_line2,
+      province,
       city,
-      region,
+      subdistrict,
+      villages,
+      full_address,
       postal_code,
+      phone_number,
     } = req.body;
 
     // Ambil ID pengguna dari token
@@ -28,11 +30,13 @@ const createNewAddress = async (req, res) => {
     const details = {
       user_id,
       address_name,
-      address_line1,
-      address_line2,
+      province,
       city,
-      region,
+      subdistrict,
+      villages,
+      full_address,
       postal_code,
+      phone_number,
     };
 
     const newAddress = await Address.create(details);

@@ -17,11 +17,7 @@ const AddressModel = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
-    address_line1: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-    },
-    address_line2: {
+    province: {
       type: DataTypes.STRING(255),
       allowNull: false,
     },
@@ -29,13 +25,28 @@ const AddressModel = sequelize.define(
       type: DataTypes.STRING(255),
       allowNull: false,
     },
-    region: {
+    subdistrict: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    villages: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    full_address: {
       type: DataTypes.STRING(255),
       allowNull: false,
     },
     postal_code: {
       type: DataTypes.INTEGER,
       allowNull: false,
+    },
+    phone_number: {
+      type: DataTypes.STRING(15), // Sesuaikan panjang dengan kebutuhan Anda
+      allowNull: false,
+      validate: {
+        isNumeric: true,
+      },
     },
   },
   {
